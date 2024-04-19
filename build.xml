@@ -1,0 +1,92 @@
+<project name="JeuDeHanabi" default="run" basedir=".">
+
+
+    <property name="app.name"      value="JeuDeHanabi" />
+    <property name="app.version"   value="1.0"/>
+    <property name="app.fullname"   value="${app.name}-${app.version}"/>
+    <property name="build.dir"    value="${basedir}/build"/>    
+    <property name="dist.dir"     value="${basedir}/dist"/>
+    <property name="docs.dir"     value="${basedir}/docs"/>
+    <property name="src.dir"      value="${basedir}/src"/>
+    <property name="MainClass"      value="Main"/>
+    <!-- ==================== Compile options =========================== -->
+    <property name="javac.encoding"      value="UTF-8"/>
+    <property name="compile.debug"       value="true"/>
+    <property name="compile.deprecation" value="false"/>
+    <property name="compile.optimize"    value="true"/>
+
+    <!-- ==================== All Target ====================================== -->
+
+    <target name="all" depends="clean,compile" description="Clean build and dist directories, then compile"/>
+
+    <!-- ==================== Clean Target ==================================== -->
+
+    <target name="clean" description="Delete old build and dist directories">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <delete dir="${docs.dir}"/>
+    </target>
+
+    <!-- ==================== Prepare Target ================================== -->
+
+    <target name="prepare">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${docs.dir}"/>
+    </target>
+  
+    <!-- ==================== Compile Target ================================== -->
+
+    <target name="compile" depends="prepare" description="Compile Java sources">
+
+        <javac srcdir="${src.dir}"
+               destdir="${build.dir}"
+               debug="${compile.debug}"
+               deprecation="${compile.deprecation}"
+               optimize="${compile.optimize}"
+               encoding="${javac.encoding}"
+               includeantruntime="false"
+               >
+        </javac>
+        <!-- Copy application resources -->
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}" excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <!-- ==================== Dist Target ===================================== -->
+
+    <target name="dist" depends="clean,compile,javadoc" description="Create binary distribution">	
+        <!-- Create application JAR file -->    
+        <jar jarfile="${dist.dir}/${app.fullname}.jar"
+             basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${MainClass}"/>
+            </manifest>
+        </jar>        
+    </target>
+
+    <!-- ==================== Javadoc Target ================================== -->
+
+    <target name="javadoc" depends="compile" description="Create Javadoc API documentation">
+        <javadoc sourcepath="${src.dir}"
+                 destdir="${docs.dir}"
+                 packagenames="*">			
+        </javadoc>	
+    </target>
+
+    <!-- ==================== Run Target ================================== -->
+	
+    <target name="run" depends="dist">
+        <java jar="${dist.dir}/${app.fullname}.jar" fork="true" />
+    </target>
+	
+    <!-- ==================== Run English ================================== -->
+	
+    <target name="run-english" depends="dist">
+        <java jar="${dist.dir}/${app.fullname}.jar" fork="true" >
+            <jvmarg value="-Duser.language=en"/>
+        </java>
+    </target>
+
+</project>
