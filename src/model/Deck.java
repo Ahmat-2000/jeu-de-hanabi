@@ -54,4 +54,14 @@ public class Deck extends AbstractListenableModel{
         this.deckStack.clear();
         super.fireChange();
     }
+
+    @Override
+    public String toString() {
+        String tmp = "Deck : { ";
+        for (Card card : deckStack) {
+            tmp += card + ", ";
+        }
+        tmp += " }";
+        return tmp;
+    }
 }

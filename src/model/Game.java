@@ -10,20 +10,23 @@ public class Game {
     public static final int maxPlayer = 5;
     private int score;
     private Deck deck;
-    private ArrayList<Card> playedCard;
+    private PlayedCards playedCards;
     private ArrayList<Player> players;
+    private Player currentPlayer;
     private Board board;
 
     public Game(Deck deck) {
         this.deck = deck;
-        this.playedCard = new ArrayList<>();
+        this.playedCards = new PlayedCards();
         this.players = new ArrayList<>();
         this.board = new Board(5);
         this.preparePlayers();
+        //TODO
+        this.currentPlayer = this.players.get(0);
     }
 
     public void preparePlayers(){
-
+        // TODO
     }
     
 }

@@ -1,7 +1,7 @@
 package model.card;
 
 /**
- * CardColor
+ * Coor enumeration for card
  */
 public enum CardEnumColor {
     WHITE,
@@ -9,5 +9,4 @@ public enum CardEnumColor {
     RED,
     BLACK,
     YELLOW;
-    
 }

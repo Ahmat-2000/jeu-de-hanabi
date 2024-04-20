@@ -90,4 +90,16 @@ public class Board extends AbstractListenableModel{
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        String tmp = "Board : {\n";
+        for(Map.Entry< CardEnumColor,Stack<Card> > entry : this.fireworks.entrySet()) {
+            tmp += "\t" + entry.getKey() + " : "+ entry.getValue().toString() + "\n";
+        }
+        tmp += "}";
+        return tmp;
+    }
+    
+    
 }
