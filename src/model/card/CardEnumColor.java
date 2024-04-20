@@ -3,10 +3,11 @@ package model.card;
 /**
  * CardColor
  */
-public enum CardColor {
+public enum CardEnumColor {
     WHITE,
     BLUE,
     RED,
     BLACK,
     YELLOW;
+    
 }

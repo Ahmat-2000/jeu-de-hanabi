@@ -1,23 +1,24 @@
 package model.card;
 
 public class Card {
-    private CardColor color;
-    private CardValue value;
-    public Card(CardColor color, CardValue value) {
+    private CardEnumColor color;
+    private CardEnumValue cardEnumValue;
+    
+    public Card(CardEnumColor color, CardEnumValue value) {
         this.color = color;
-        this.value = value;
+        this.cardEnumValue = value;
     }
-    public CardColor getColor() {
+    public CardEnumColor getColor() {
         return color;
     }
-    public void setColor(CardColor color) {
+    public void setColor(CardEnumColor color) {
         this.color = color;
     }
-    public CardValue getValue() {
-        return value;
-    }
-    public void setValue(CardValue value) {
-        this.value = value;
-    }
 
+    public CardEnumValue getCardEnumValue() {
+        return cardEnumValue;
+    }
+    public void setCardEnumValue(CardEnumValue cardEnumValue) {
+        this.cardEnumValue = cardEnumValue;
+    }
 }

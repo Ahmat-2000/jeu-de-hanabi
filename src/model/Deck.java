@@ -3,8 +3,8 @@ package model;
 import java.util.Stack;
 
 import model.card.Card;
-import model.card.CardColor;
-import model.card.CardValue;
+import model.card.CardEnumColor;
+import model.card.CardEnumValue;
 import model.observer.AbstractListenableModel;
 
 public class Deck extends AbstractListenableModel{
@@ -47,7 +47,7 @@ public class Deck extends AbstractListenableModel{
     public void prepareDeck(){
         // TODO
         for (int index = 0; index < size; index++) {
-            this.deckStack.push(new Card(CardColor.BLACK, CardValue.ONE));
+            this.deckStack.push(new Card(CardEnumColor.BLACK, CardEnumValue.ONE));
         }
     }
     public void cleanDeck(){
