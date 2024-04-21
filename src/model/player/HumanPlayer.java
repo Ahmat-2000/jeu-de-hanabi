@@ -1,24 +1,17 @@
 package model.player;
 
-import model.card.Card;
+import model.Deck;
 
 public class HumanPlayer extends Player{
 
-    public HumanPlayer(Hand h) {
-        super(h);
-        //TODO Auto-generated constructor stub
+    public HumanPlayer(int handSize,Deck deck, int id) {
+        super(handSize,deck,id);
     }
 
     @Override
-    public void playCard(Card c) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'playCard'");
+    public String toString() {
+        return "HumanPlayer N°" + super.getPlayerID();
     }
-
-    @Override
-    public void discard(Card c) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'discard'");
-    }
+    
     
 }

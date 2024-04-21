@@ -90,7 +90,13 @@ public class Board extends AbstractListenableModel{
         }
         return true;
     }
-
+    public int countScore(){
+        int score = 0;
+        for(Map.Entry< CardEnumColor,Stack<Card> > entry : this.fireworks.entrySet()) {
+            score += entry.getValue().size();
+        }
+        return score;
+    }
     @Override
     public String toString() {
         String tmp = "Board : {\n";

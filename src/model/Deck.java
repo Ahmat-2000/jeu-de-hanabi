@@ -47,11 +47,13 @@ public class Deck extends AbstractListenableModel{
     public void prepareDeck(){
         // TODO
         for (int index = 0; index < size; index++) {
-            this.deckStack.push(new Card(CardEnumColor.BLACK, CardEnumValue.ONE));
+            this.deckStack.push(new Card(CardEnumColor.GREEN, CardEnumValue.ONE));
         }
+        this.size = this.deckStack.size();
     }
     public void cleanDeck(){
         this.deckStack.clear();
+        this.size = 0;
         super.fireChange();
     }
 

@@ -7,6 +7,6 @@ public enum CardEnumColor {
     WHITE,
     BLUE,
     RED,
-    BLACK,
+    GREEN,
     YELLOW;
 }

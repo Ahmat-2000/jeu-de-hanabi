@@ -5,6 +5,8 @@ public class Card {
     private CardEnumColor color;
     /** Card color */
     private CardEnumValue cardEnumValue;
+    /** Hide card value and color */
+    private boolean visibility;
     
     /**
      * @param color of the card
@@ -13,6 +15,7 @@ public class Card {
     public Card(CardEnumColor color, CardEnumValue value) {
         this.color = color;
         this.cardEnumValue = value;
+        this.visibility = false;
     }
 
 
@@ -52,5 +55,11 @@ public class Card {
         return ""+this.cardEnumValue.getValue() + this.color;
     }
 
-    
+    public boolean isVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(boolean visibility) {
+        this.visibility = visibility;
+    }
 }
