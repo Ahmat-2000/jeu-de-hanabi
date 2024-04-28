@@ -32,7 +32,7 @@ public abstract class Player {
      */
     public Hand getHand() {
         return hand;
-    }
+    } 
     /**
      * Play a card
      * @param c The card to play
@@ -68,4 +68,5 @@ public abstract class Player {
     }
     // public abstract String giveHint();
     // public abstract int chooseAction();
+    public abstract String playerType();
 }

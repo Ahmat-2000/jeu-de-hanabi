@@ -6,6 +6,7 @@ import java.util.Stack;
 
 import model.card.Card;
 import model.card.CardEnumColor;
+import model.card.CardEnumValue;
 import model.observer.AbstractListenableModel;
 
 /**
@@ -53,16 +54,18 @@ public class Board extends AbstractListenableModel{
     }
     /**
      * Check if we can add a new card to the board
-     * @param color Card color
      * @param card Card to add 
      * @return true if we can add this card to the board, otherwise false
      */
-    public boolean canAddCard(CardEnumColor color, Card card){
-        Stack<Card> tmp = this.fireworks.get(color);
-        if(tmp.size() == this.stackSize || color != card.getColor()){
+    public boolean canAddCard(Card card){
+        Stack<Card> tmp = this.fireworks.get(card.getColor());
+        if(tmp.size() == this.stackSize ){
             return false;
         }
-        if(card.getCardEnumValue().getValue() + 1 != tmp.peek().getCardEnumValue().getValue()){
+        if(!tmp.empty() && card.getCardEnumValue().getValue() + 1 != tmp.peek().getCardEnumValue().getValue()){
+            return false;
+        }
+        if(tmp.empty() && card.getCardEnumValue().getValue() != CardEnumValue.ONE.getValue()){
             return false;
         }
         return true;
@@ -70,12 +73,12 @@ public class Board extends AbstractListenableModel{
     
     /**
      * Add a new card to the board
-     * @param color Card color
      * @param card Card to add
      */
-    public void addToTheBoard(CardEnumColor color, Card card){
-        this.fireworks.get(color).add(card);
+    public boolean addToTheBoard(Card card){
+        this.fireworks.get(card.getColor()).add(card);
         super.fireChange();
+        return this.fireworks.get(card.getColor()).size() == this.stackSize;
     }
 
     /**
@@ -99,11 +102,11 @@ public class Board extends AbstractListenableModel{
     }
     @Override
     public String toString() {
-        String tmp = "Board : {\n";
+        String tmp = "Board : \n";
         for(Map.Entry< CardEnumColor,Stack<Card> > entry : this.fireworks.entrySet()) {
             tmp += "\t" + entry.getKey() + " : "+ entry.getValue().toString() + "\n";
         }
-        tmp += "}";
+        tmp += "";
         return tmp;
     }
     

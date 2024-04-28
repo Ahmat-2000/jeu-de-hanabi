@@ -10,7 +10,12 @@ public class HumanPlayer extends Player{
 
     @Override
     public String toString() {
-        return "HumanPlayer N°" + super.getPlayerID();
+        return "HumanPlayer N°" + (super.getPlayerID() + 1);
+    }
+
+    @Override
+    public String playerType() {
+        return "Human";
     }
     
     

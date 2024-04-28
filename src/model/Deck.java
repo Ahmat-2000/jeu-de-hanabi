@@ -1,5 +1,6 @@
 package model;
 
+import java.util.Collections;
 import java.util.Stack;
 
 import model.card.Card;
@@ -44,11 +45,23 @@ public class Deck extends AbstractListenableModel{
         this.size = deckStack.size();
         return c;
     }
+    /**
+     * Push 50 cards to the deck, 10 cards for each color.
+     * for each color add 1,1,1,2,2,3,3,4,4,5
+     */
     public void prepareDeck(){
-        // TODO
-        for (int index = 0; index < size; index++) {
-            this.deckStack.push(new Card(CardEnumColor.GREEN, CardEnumValue.ONE));
+        for (CardEnumColor color : CardEnumColor.values()) {
+            for (int i = 0; i < 3; i++) {
+                this.deckStack.push(new Card(color, CardEnumValue.ONE));
+                if(i != 0){
+                    this.deckStack.push(new Card(color, CardEnumValue.TWO));
+                    this.deckStack.push(new Card(color, CardEnumValue.THREE));
+                    this.deckStack.push(new Card(color, CardEnumValue.FOUR));
+                }
+            }
+            this.deckStack.push(new Card(color, CardEnumValue.FIVE));
         }
+        Collections.shuffle(deckStack);
         this.size = this.deckStack.size();
     }
     public void cleanDeck(){
@@ -63,7 +76,7 @@ public class Deck extends AbstractListenableModel{
         for (Card card : deckStack) {
             tmp += card + ", ";
         }
-        tmp += " }";
+        tmp += "}";
         return tmp;
     }
 }

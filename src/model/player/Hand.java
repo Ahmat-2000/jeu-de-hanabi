@@ -53,4 +53,10 @@ public class Hand extends AbstractListenableModel {
         this.handCards.remove(c);
         //super.fireChange();
     }
+
+    @Override
+    public String toString() {
+        return "Hand : "+ this.handCards ;
+    }
+    
 }

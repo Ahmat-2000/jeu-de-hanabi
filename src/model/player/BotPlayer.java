@@ -10,6 +10,10 @@ public class BotPlayer extends Player{
 
     @Override
     public String toString() {
-        return "BotPlayer N°" + super.getPlayerID();
+        return "BotPlayer N°" + (super.getPlayerID() + 1);
+    }
+    @Override
+    public String playerType() {
+        return "AI";
     }
 }

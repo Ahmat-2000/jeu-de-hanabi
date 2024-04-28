@@ -30,12 +30,7 @@ public class PlayedCards extends AbstractListenableModel{
 
     @Override
     public String toString() {
-        String tmp = "PlayedCards : { ";
-        for (Card card : playeCards) {
-            tmp += card + ", ";
-        }
-        tmp += "}";
-        return tmp;
+        return "PlayedCards : "+this.playeCards;
     }
 
     
