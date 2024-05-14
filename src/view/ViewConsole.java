@@ -1,31 +1,44 @@
 package view;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
-
 import model.Game;
 import model.card.CardEnumColor;
 
+/**
+ * Classe ViewConsole pour gérer l'interface utilisateur de console pour le jeu de Hanabi.
+ * Fournit des méthodes pour afficher le jeu, choisir des actions, et interagir avec l'utilisateur.
+ */
 public class ViewConsole {
     private Game game;
     private Scanner scanner;
+
+    /**
+     * Constructeur de la classe ViewConsole.
+     * @param game L'instance de Game qui représente l'état actuel du jeu.
+     */
     public ViewConsole(Game game) {
         this.game = game;
         scanner = new Scanner(System.in);
-
     }
 
+    /**
+     * Affiche l'état actuel du jeu.
+     */
     public void printGame(){
         System.out.println("############################################");
-        System.out.println("It's "+game.getCurrentPlayer()+" turn");
+        System.out.println("It's " + game.getCurrentPlayer() + " turn");
         System.out.println(game.getBoard());
         System.out.println("Opponent " + game.getNextPlayer().getHand());
         System.out.println(game.getPlayedCards());
         System.out.println(game.getBlueToken());
         System.out.println(game.getRedToken());
-        System.out.println("Deck size : " + game.getDeck().getSize()+"\n");
-        // System.out.println(game.getDeck());
-
+        System.out.println("Deck size : " + game.getDeck().getSize() + "\n");
     }
+
+    /**
+     * Affiche les actions possibles dans le jeu.
+     */
     public void printAction(){
         System.out.println("Game Actions : ");
         System.out.println("\t 1 - Play a card");
@@ -33,70 +46,98 @@ public class ViewConsole {
         System.out.println("\t 3 - Give hint to your opponent\n");
     }
 
+    /**
+     * Affiche les types d'indices que l'utilisateur peut donner.
+     */
     public void printHint(){
         System.out.println("Game Hints : ");
         System.out.println("\t 1 - Give hint on the color");
         System.out.println("\t 2 - Give hint on the value\n");
     }
+
+    /**
+     * Permet à l'utilisateur de choisir une carte de sa main.
+     * @param message Le message à afficher à l'utilisateur.
+     * @return L'indice de la carte choisie.
+     */
     public int chooseCard(String message){
         int size = game.getCurrentPlayer().getHand().getHandSize();
-        System.out.print(message + " please choose a card index between 1 and " + size + " : ");
-        int index = scanner.nextInt() - 1;
-        System.out.println();
-        while (index < 0 || index > size -1) {
-            System.out.print(message + " please choose a card index between 1 and " + size + " : ");
-            index = scanner.nextInt() -1;
-            System.out.println();
-        }
-        return index;
+        return promptForNumber(message + " please choose a card index between 1 and " + size + " : ", 1, size) - 1;
     }
+
+    /**
+     * Traite l'action de jouer une carte.
+     */
     public void printPlayCard(){
         this.game.playCardByIndex(this.chooseCard("To play a card,"));
     }
+
+    /**
+     * Traite l'action de jeter une carte.
+     */
     private void printDiscard() {
         this.game.discardByIndex(this.chooseCard("To discard a card,"));
-    }    
-        
+    }
+
+    /**
+     * Traite l'action de donner un indice.
+     */
     private void printGiveHint() {
         this.printHint();
-        System.out.print("\nPlease choose a hint (1 for color, 2 for value): ");
-        int index = scanner.nextInt();
-        while (index < 1 || index > 2) {
-            System.out.print("\nPlease choose a valid hint number (1 or 2): ");
-            index = scanner.nextInt();
-        }
+        int index = promptForNumber("\nPlease choose a hint (1 for color, 2 for value): ", 1, 2);
         if (index == 1) {
-            System.out.println("\nChoose a color number from the following: ");
+            System.out.println("\nChoose a color number from the following:");
             CardEnumColor[] colors = CardEnumColor.values();
-            String showColor = "";
             for (int i = 0; i < colors.length; i++) {
-                showColor += "\t" + (i + 1) + ". " + colors[i] + "\n";
+                System.out.println("\t" + (i + 1) + ". " + colors[i]);
             }
-            System.out.println(showColor);
-            int colorChoice = scanner.nextInt();
-            while (colorChoice < 1 || colorChoice > colors.length) {
-                System.out.println("Please choose a valid color number between 1 and " + colors.length + ": ");
-                colorChoice = scanner.nextInt();
-            }
-            // Générer l'indice et l'afficher
+            int colorChoice = promptForNumber("Please choose a valid color number between 1 and " + colors.length + ": ", 1, colors.length);
             String hintMessage = "Hint for color: ";
-            hintMessage = game.giveHintByColor(colors[colorChoice-1], hintMessage);
-            System.out.println(hintMessage);
-        } else if (index == 2) {
-            System.out.println("\nChoose a number between 1 and "+ game.getCurrentPlayer().getHand().getHandSize() +": ");
-            int numberChoice = scanner.nextInt();
-            while (numberChoice < 1 || numberChoice > game.getCurrentPlayer().getHand().getHandSize()) {
-                System.out.println("Please choose a valid number between 1 and "+ game.getCurrentPlayer().getHand().getHandSize() +": ");
-                numberChoice = scanner.nextInt();
+            try {
+                hintMessage = game.giveHintByColor(colors[colorChoice-1], hintMessage);
+                System.out.println(hintMessage);
+            } catch (Exception e) {
+                System.out.println("There is no blue token left");
             }
-            // Générer l'indice et l'afficher
+        } else if (index == 2) {
+            int numberChoice = promptForNumber("\nChoose a number between 1 and 5: ", 1, 5);
             String hintMessage = "Hint for value: ";
-            hintMessage = game.giveHintByValue(numberChoice, hintMessage);
-            System.out.println(hintMessage);
+            try {
+                hintMessage = game.giveHintByValue(numberChoice, hintMessage);
+                System.out.println(hintMessage);
+            } catch (Exception e) {
+                System.out.println("There is no blue token left");
+            }
         }
     }
-    
 
+    /**
+     * Méthode générique pour demander à l'utilisateur un nombre dans une plage donnée.
+     * @param message Le message à afficher.
+     * @param min La valeur minimale.
+     * @param max La valeur maximale.
+     * @return Le nombre entré par l'utilisateur.
+     */
+    private int promptForNumber(String message, int min, int max) {
+        while (true) {
+            System.out.print(message);
+            try {
+                int number = scanner.nextInt();
+                if (number >= min && number <= max) {
+                    return number;
+                }
+                System.out.println("Please enter a number between " + min + " and " + max + ".");
+            } catch (InputMismatchException e) {
+                scanner.next(); // nettoie l'entrée incorrecte
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
+
+    /**
+     * Exécute une action choisie par l'utilisateur.
+     * @param action Le numéro de l'action à exécuter.
+     */
     public void executeAction(int action){
         switch (action) {
             case 1:
@@ -114,36 +155,29 @@ public class ViewConsole {
         }
     }
 
+    /**
+     * Permet à l'utilisateur de choisir et d'exécuter une action.
+     */
     public void chooseAction(){
-        int action = 0;
         if(game.getCurrentPlayer().playerType().equals("AI")){
-            //TODO
+            //TODO AI Logic
         }else{
             while (true) {
                 this.printAction();
-            
-                System.out.print("Please choose action number between 1, 2 and 3 : ");
-                action = this.scanner.nextInt();
-                while (action < 1 || action > 3) {
-                    System.out.print("Please choose action number between 1, 2 and 3 : ");
-                    action = this.scanner.nextInt();
-                    System.out.println();
-                }
-                if (action == 2 && this.game.canNotDiscard()) {
-                    System.out.println("All Blues tokens are on the bag, please perform another action.\n");
+                int action = promptForNumber("Please choose action number between 1, 2 and 3 : ", 1, 3);
+                if ((action == 2 && this.game.canNotDiscard()) || (action == 3 && this.game.canNotGiveHint())) {
+                    System.out.println("Unable to perform the selected action, please choose another.\n");
                     continue;
                 }
-                else if (action == 3 && this.game.canNotGiveHint()) {
-                    System.out.println("There is no Blues tokens left on the bag, please perform another action.\n");
-                    continue;
-                }
-                else{
-                    this.executeAction(action);
-                    break;
-                }
+                this.executeAction(action);
+                break;
             }
         }
     }
+
+    /**
+     * Démarre le jeu et gère le flux de jeu jusqu'à la fin.
+     */
     public void startGame(){
         while (!this.game.isGameOver()) {
             this.printGame();
@@ -153,6 +187,5 @@ public class ViewConsole {
         this.game.endGame();
         System.out.println(this.game.getScoreFeedback());
         this.scanner.close();
-
     }
 }
