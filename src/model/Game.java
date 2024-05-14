@@ -3,14 +3,15 @@ package model;
 import java.util.ArrayList;
 
 import model.card.Card;
+import model.card.CardEnumColor;
 import model.player.HumanPlayer;
 import model.player.Player;
 
 public class Game {
     public static final int minPlayer = 2;
     public static final int maxPlayer = 5;
-    private Tocken blueTocken;
-    private Tocken redTocken;
+    private Token blueToken;
+    private Token redToken;
     private int nbPlayers;
     private Deck deck;
     private PlayedCards playedCards;
@@ -26,8 +27,8 @@ public class Game {
         this.currentPlayer = this.players.get(0);
     }
     public void prepareGame(){
-        this.blueTocken = new Tocken("Blue", 8);
-        this.redTocken = new Tocken("Red" , 3);
+        this.blueToken = new Token("Blue", 8);
+        this.redToken = new Token("Red" , 3);
         this.playedCards = new PlayedCards();
         this.players = new ArrayList<>();
         this.board = new Board(5);
@@ -62,15 +63,47 @@ public class Game {
         
         return true;
     }
+    public boolean canNotDiscard(){
+        return this.blueToken.isFullToken();
+    }
+    public boolean canNotGiveHint(){
+        return this.blueToken.isNoTokenLeft();
+    }
+    public String giveHintByValue(int val, String message){
+        for (int i = 0; i < this.currentPlayer.getHand().getHandSize() ; i++) {
+            if (this.getNextPlayer().getHand().getHandCards().get(i).getCardEnumValue().getValue() == val) {
+                message += (i+1)+", ";
+            }
+        }
+        return message;
+    }
+    public String giveHintByColor(CardEnumColor color, String message){
+        for (int i = 0; i < this.currentPlayer.getHand().getHandSize() ; i++) {
+            if (this.getNextPlayer().getHand().getHandCards().get(i).getColor() == color) {
+                message += (i+1)+", ";
+            }
+        }
+        return message;
+    }
     public void playCardByIndex(int index){
         Card c = this.currentPlayer.playCardByIndex(index);
         if (this.board.canAddCard(c)) {
-            if (this.board.addToTheBoard(c) && !this.redTocken.isFullTocken()) {
-                this.redTocken.addTocken();
+            if (this.board.addToTheBoard(c) && !this.redToken.isFullToken()) {
+                this.redToken.addToken();
             }
         }else{
             this.playedCards.addCard(c);
-            this.redTocken.removeTocken();
+            this.redToken.removeToken();
+        }
+    }
+    public void discardByIndex(int index){
+        if (this.blueToken.isFullToken()) {
+            throw new IllegalStateException("All INDICE tokens are on the bag, please perform another action.");
+        }
+        else{
+            Card c = this.currentPlayer.discardByIndex(index);
+            this.playedCards.addCard(c);
+            this.blueToken.addToken();
         }
     }
     public int getScore(){
@@ -80,7 +113,7 @@ public class Game {
         if (deck.getSize() == 0) {
             return true;
         }
-        if (redTocken.isNoTockenLeft()) {
+        if (redToken.isNoTokenLeft()) {
             return true;
         }
         if (board.isCompleteFireworks()) {
@@ -88,12 +121,12 @@ public class Game {
         }
         return false;
     }
-    public Tocken getBlueTocken() {
-        return blueTocken;
+    public Token getBlueToken() {
+        return blueToken;
     }
 
-    public Tocken getRedTocken() {
-        return redTocken;
+    public Token getRedToken() {
+        return redToken;
     }
 
     public int getNbPlayers() {
@@ -115,6 +148,7 @@ public class Game {
     public Board getBoard() {
         return board;
     }
+
     //TODO
     public String getScoreFeedback() {
         int score = this.getScore();

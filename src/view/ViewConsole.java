@@ -3,6 +3,7 @@ package view;
 import java.util.Scanner;
 
 import model.Game;
+import model.card.CardEnumColor;
 
 public class ViewConsole {
     private Game game;
@@ -19,8 +20,8 @@ public class ViewConsole {
         System.out.println(game.getBoard());
         System.out.println("Opponent " + game.getNextPlayer().getHand());
         System.out.println(game.getPlayedCards());
-        System.out.println(game.getBlueTocken());
-        System.out.println(game.getRedTocken());
+        System.out.println(game.getBlueToken());
+        System.out.println(game.getRedToken());
         System.out.println("Deck size : " + game.getDeck().getSize()+"\n");
         // System.out.println(game.getDeck());
 
@@ -37,28 +38,64 @@ public class ViewConsole {
         System.out.println("\t 1 - Give hint on the color");
         System.out.println("\t 2 - Give hint on the value\n");
     }
-
-    public void printPlayCard(){
+    public int chooseCard(String message){
         int size = game.getCurrentPlayer().getHand().getHandSize();
-        System.out.print("To play a card, please choose a card index between 1 and " + size + " : ");
+        System.out.print(message + " please choose a card index between 1 and " + size + " : ");
         int index = scanner.nextInt() - 1;
         System.out.println();
         while (index < 0 || index > size -1) {
-            System.out.print("To play a card, please choose a card index between 1 and " + size + " : ");
+            System.out.print(message + " please choose a card index between 1 and " + size + " : ");
             index = scanner.nextInt() -1;
             System.out.println();
         }
-        this.game.playCardByIndex(index);
+        return index;
+    }
+    public void printPlayCard(){
+        this.game.playCardByIndex(this.chooseCard("To play a card,"));
     }
     private void printDiscard() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'printDiscard'");
-    }
-
+        this.game.discardByIndex(this.chooseCard("To discard a card,"));
+    }    
+        
     private void printGiveHint() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'printGiveHint'");
+        this.printHint();
+        System.out.print("\nPlease choose a hint (1 for color, 2 for value): ");
+        int index = scanner.nextInt();
+        while (index < 1 || index > 2) {
+            System.out.print("\nPlease choose a valid hint number (1 or 2): ");
+            index = scanner.nextInt();
+        }
+        if (index == 1) {
+            System.out.println("\nChoose a color number from the following: ");
+            CardEnumColor[] colors = CardEnumColor.values();
+            String showColor = "";
+            for (int i = 0; i < colors.length; i++) {
+                showColor += "\t" + (i + 1) + ". " + colors[i] + "\n";
+            }
+            System.out.println(showColor);
+            int colorChoice = scanner.nextInt();
+            while (colorChoice < 1 || colorChoice > colors.length) {
+                System.out.println("Please choose a valid color number between 1 and " + colors.length + ": ");
+                colorChoice = scanner.nextInt();
+            }
+            // Générer l'indice et l'afficher
+            String hintMessage = "Hint for color: ";
+            hintMessage = game.giveHintByColor(colors[colorChoice-1], hintMessage);
+            System.out.println(hintMessage);
+        } else if (index == 2) {
+            System.out.println("\nChoose a number between 1 and "+ game.getCurrentPlayer().getHand().getHandSize() +": ");
+            int numberChoice = scanner.nextInt();
+            while (numberChoice < 1 || numberChoice > game.getCurrentPlayer().getHand().getHandSize()) {
+                System.out.println("Please choose a valid number between 1 and "+ game.getCurrentPlayer().getHand().getHandSize() +": ");
+                numberChoice = scanner.nextInt();
+            }
+            // Générer l'indice et l'afficher
+            String hintMessage = "Hint for value: ";
+            hintMessage = game.giveHintByValue(numberChoice, hintMessage);
+            System.out.println(hintMessage);
+        }
     }
+    
 
     public void executeAction(int action){
         switch (action) {
@@ -77,28 +114,40 @@ public class ViewConsole {
         }
     }
 
-    public int chooseAction(){
+    public void chooseAction(){
         int action = 0;
         if(game.getCurrentPlayer().playerType().equals("AI")){
             //TODO
         }else{
-            System.out.print("Please choose action number between 1, 2 and 3 : ");
-            action = this.scanner.nextInt();
-            while (action < 1 || action > 3) {
+            while (true) {
+                this.printAction();
+            
                 System.out.print("Please choose action number between 1, 2 and 3 : ");
                 action = this.scanner.nextInt();
-                System.out.println();
+                while (action < 1 || action > 3) {
+                    System.out.print("Please choose action number between 1, 2 and 3 : ");
+                    action = this.scanner.nextInt();
+                    System.out.println();
+                }
+                if (action == 2 && this.game.canNotDiscard()) {
+                    System.out.println("All Blues tokens are on the bag, please perform another action.\n");
+                    continue;
+                }
+                else if (action == 3 && this.game.canNotGiveHint()) {
+                    System.out.println("There is no Blues tokens left on the bag, please perform another action.\n");
+                    continue;
+                }
+                else{
+                    this.executeAction(action);
+                    break;
+                }
             }
         }
-        return action;
     }
     public void startGame(){
-        int action = 0;
         while (!this.game.isGameOver()) {
             this.printGame();
-            this.printAction();
-            action = this.chooseAction();
-            this.executeAction(action);
+            this.chooseAction();
             this.game.setCurrentPlayer();
         }
         this.game.endGame();
