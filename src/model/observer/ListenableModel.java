@@ -1,23 +1,20 @@
 package model.observer;
 
 /**
- * Defines the contract for models that can be listened to. Such models can register
- * and notify listeners about changes, allowing for a reactive design where changes in the
- * model can be propagated to observers, typically for UI updates or other forms of state
- * synchronization.
+ * Interface ListenableModel pour les modèles qui peuvent être écoutés.
  */
 public interface ListenableModel {
     /**
-     * Registers a ModelListener to be notified about changes to the model.
+     * Ajoute un écouteur de modèle.
      *
-     * @param l The listener to be added.
+     * @param l L'écouteur de modèle à ajouter.
      */
     void addModelListener(ModelListener l);
 
     /**
-     * Removes a previously registered ModelListener so it no longer receives change notifications.
+     * Retire un écouteur de modèle.
      *
-     * @param l The listener to be removed.
+     * @param l L'écouteur de modèle à retirer.
      */
     void removeModelListener(ModelListener l);
 }

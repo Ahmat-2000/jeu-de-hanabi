@@ -1,51 +1,49 @@
 package model.observer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
- * An abstract class that provides a framework for observable models. It allows
- * listeners to be added or removed and notifies them when the model changes.
+ * Classe abstraite AbstractListenableModel pour les modèles qui peuvent notifier les écouteurs de changement.
  */
 public abstract class AbstractListenableModel implements ListenableModel {
-    // A list of listeners that are interested in changes to the model.
+    /**
+     * La liste des écouteurs de modèle.
+     */
     private List<ModelListener> listeners;
 
     /**
-     * Constructs an AbstractListenableModel and initializes the listener list.
+     * Constructeur pour créer un modèle écoutable.
      */
-    public AbstractListenableModel() {
+    public AbstractListenableModel(){
         listeners = new ArrayList<>();
     }
 
     /**
-     * Registers a listener to be notified of changes to the model.
+     * Ajoute un écouteur de modèle.
      *
-     * @param l The listener to add.
+     * @param l L'écouteur de modèle à ajouter.
      */
     @Override
-    public void addModelListener(ModelListener l) {
+    public void addModelListener(ModelListener l){
         listeners.add(l);
     }
 
     /**
-     * Removes a registered listener so that it no longer receives change notifications.
+     * Retire un écouteur de modèle.
      *
-     * @param l The listener to remove.
+     * @param l L'écouteur de modèle à retirer.
      */
     @Override
-    public void removeModelListener(ModelListener l) {
+    public void removeModelListener(ModelListener l){
         listeners.remove(l);
     }
 
     /**
-     * Notifies all registered listeners of a change in the model. This method is typically
-     * called by subclasses whenever the model's state changes in a way that should be
-     * visible to the outside world.
+     * Notifie tous les écouteurs d'un changement.
      */
-    protected void fireChange() {
-        for (ModelListener l : listeners) {
-            l.somethingHasChanged(this); // Notify each listener of the change.
+    protected void fireChange(){
+        for(ModelListener l : listeners){
+            l.somethinHasChanged(this);
         }
     }
 }

@@ -3,80 +3,100 @@ package model;
 import java.util.Collections;
 import java.util.Stack;
 
-import model.card.Card;
-import model.card.CardEnumColor;
-import model.card.CardEnumValue;
 import model.observer.AbstractListenableModel;
 
-public class Deck extends AbstractListenableModel{
-    private int size;
-    private Stack<Card> deckStack;
+/**
+ * La classe Deck représente un paquet de cartes dans le jeu.
+ * Elle hérite de AbstractListenableModel pour notifier les observateurs des changements.
+ */
+public class Deck extends AbstractListenableModel {
+
     /**
-     * 
-     * @param size
+     * Pile des cartes
      */
-    public Deck(int size) {
+    private final Stack<Card> deck = new Stack<>();
+
+    /**
+     * Constructeur pour créer un deck et l'initialiser.
+     */
+    public Deck() {
         super();
-        this.size = size;
-        this.deckStack = new Stack<>();
-        this.prepareDeck();
+        initializeDeck();
     }
+
     /**
-     * 
-     * @return
+     * Initialise le deck avec les cartes appropriées et les mélange.
      */
-    public int getSize() {
-        return size;
-    }
-    /**
-     * 
-     * @return
-     */
-    public Stack<Card> getDeckStack() {
-        return deckStack;
-    }
-    /**
-     * 
-     * @return
-     */
-    public Card peekCard(){
-        Card c = deckStack.pop();
-        super.fireChange();
-        this.size = deckStack.size();
-        return c;
-    }
-    /**
-     * Push 50 cards to the deck, 10 cards for each color.
-     * for each color add 1,1,1,2,2,3,3,4,4,5
-     */
-    public void prepareDeck(){
-        for (CardEnumColor color : CardEnumColor.values()) {
-            for (int i = 0; i < 3; i++) {
-                this.deckStack.push(new Card(color, CardEnumValue.ONE));
-                if(i != 0){
-                    this.deckStack.push(new Card(color, CardEnumValue.TWO));
-                    this.deckStack.push(new Card(color, CardEnumValue.THREE));
-                    this.deckStack.push(new Card(color, CardEnumValue.FOUR));
+    private void initializeDeck() {
+        for (CardColor color : CardColor.values()) {
+            for (int i = 0; i < 10; i++) {
+                if (i < 3) {
+                    deck.push(new Card(1, color));
+                } else if (i < 5) {
+                    deck.push(new Card(2, color));
+                } else if (i < 7) {
+                    deck.push(new Card(3, color));
+                } else if (i < 9) {
+                    deck.push(new Card(4, color));
+                } else {
+                    deck.push(new Card(5, color));
                 }
             }
-            this.deckStack.push(new Card(color, CardEnumValue.FIVE));
         }
-        Collections.shuffle(deckStack);
-        this.size = this.deckStack.size();
-    }
-    public void cleanDeck(){
-        this.deckStack.clear();
-        this.size = 0;
+        Collections.shuffle(deck);
         super.fireChange();
     }
 
-    @Override
-    public String toString() {
-        String tmp = "Deck : { ";
-        for (Card card : deckStack) {
-            tmp += card + ", ";
+    /**
+     * Vérifie si le deck est vide.
+     *
+     * @return Vrai si le deck est vide, faux sinon.
+     */
+    public boolean isEmpty() {
+        return deck.isEmpty();
+    }
+
+    /**
+     * Obtient la taille actuelle du deck.
+     *
+     * @return La taille du deck.
+     */
+    public int getSize() {
+        return deck.size();
+    }
+
+    /**
+     * Pioche une carte du deck.
+     *
+     * @return La carte piochée.
+     */
+    public Card pickCard() {
+        super.fireChange();
+        return deck.pop();
+    }
+
+    /**
+     * Obtient le nombre total d'occurrences d'une carte spécifique dans le deck.
+     *
+     * @param card La carte à vérifier.
+     * @return Le nombre total d'occurrences de la carte.
+     */
+    public long getTotalCount(Card card) {
+        long count = 0;
+        for (Card c : deck) {
+            if (c.equals(card)) {
+                count++;
+            }
         }
-        tmp += "}";
-        return tmp;
+        return count;
+    }
+
+    /**
+     * Obtient le deck de cartes.
+     *
+     * @return Le deck de cartes.
+     */
+    public Stack<Card> getDeck() {
+        return deck;
     }
 }

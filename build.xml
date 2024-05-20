@@ -1,19 +1,33 @@
-<project name="JeuDeHanabi" default="run" basedir=".">
+<project name="Hanabi" default="run" basedir=".">
 
 
-    <property name="app.name"      value="JeuDeHanabi" />
-    <property name="app.version"   value="1.0"/>
+    <property name="app.name"      value="Hanabi" />
+    <property name="app.version"   value="0.1"/>
     <property name="app.fullname"   value="${app.name}-${app.version}"/>
-    <property name="build.dir"    value="${basedir}/build"/>    
-    <property name="dist.dir"     value="${basedir}/dist"/>
-    <property name="docs.dir"     value="${basedir}/docs"/>
-    <property name="src.dir"      value="${basedir}/src"/>
-    <property name="MainClass"      value="Main"/>
-    <!-- ==================== Compile options =========================== -->
+    <property name="build.home"    value="${basedir}/build"/>
+    
+    <property name="dist.home"     value="${basedir}/dist"/>
+    <property name="docs.home"     value="${basedir}/docs"/>
+    <property name="src.home"      value="${basedir}/src"/>
     <property name="javac.encoding"      value="UTF-8"/>
+  
+
+    <!-- ==================== Compile options =========================== -->
+  
     <property name="compile.debug"       value="true"/>
     <property name="compile.deprecation" value="false"/>
     <property name="compile.optimize"    value="true"/>
+
+           
+    <!-- ==================== Compilation Classpath =========================== -->
+
+    <!--     
+    <path id="compile.classpath">
+        <fileset dir="${lib.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path> 
+    -->
 
     <!-- ==================== All Target ====================================== -->
 
@@ -22,71 +36,110 @@
     <!-- ==================== Clean Target ==================================== -->
 
     <target name="clean" description="Delete old build and dist directories">
-        <delete dir="${build.dir}"/>
-        <delete dir="${dist.dir}"/>
-        <delete dir="${docs.dir}"/>
+        <delete dir="${build.home}"/>
+        <delete dir="${dist.home}"/>
     </target>
 
     <!-- ==================== Prepare Target ================================== -->
 
     <target name="prepare">
-        <mkdir dir="${build.dir}"/>
-        <mkdir dir="${dist.dir}"/>
-        <mkdir dir="${docs.dir}"/>
+        <mkdir dir="${build.home}"/>
+        <mkdir dir="${dist.home}"/>		
     </target>
-  
+
     <!-- ==================== Compile Target ================================== -->
 
     <target name="compile" depends="prepare" description="Compile Java sources">
-
-        <javac srcdir="${src.dir}"
-               destdir="${build.dir}"
+        <javac srcdir="${src.home}"
+               destdir="${build.home}"
                debug="${compile.debug}"
                deprecation="${compile.deprecation}"
                optimize="${compile.optimize}"
                encoding="${javac.encoding}"
-               includeantruntime="false"
-               >
+               includeantruntime="false">
+            <!-- <classpath refid="compile.classpath"/> -->
         </javac>
         <!-- Copy application resources -->
-        <copy todir="${build.dir}">
-            <fileset dir="${src.dir}" excludes="**/*.java"/>
+        <copy todir="${build.home}">
+            <fileset dir="${src.home}" excludes="**/*.java"/>
         </copy>
     </target>
 
     <!-- ==================== Dist Target ===================================== -->
 
-    <target name="dist" depends="clean,compile,javadoc" description="Create binary distribution">	
-        <!-- Create application JAR file -->    
-        <jar jarfile="${dist.dir}/${app.fullname}.jar"
-             basedir="${build.dir}">
+    <target name="dist" depends="clean,compile,javadoc" description="Create binary distribution">
+        <!--
+        <copy  todir="${dist.home}/lib">
+            <fileset dir="${lib.home}"/>
+        </copy>  
+        -->
+        <jar jarfile="${dist.home}/${app.fullname}.jar"
+             basedir="${build.home}">
             <manifest>
-                <attribute name="Main-Class" value="${MainClass}"/>
+                <attribute name="Main-Class" value="main.Main"/>
             </manifest>
-        </jar>        
+        </jar>
+        
     </target>
-
+  
     <!-- ==================== Javadoc Target ================================== -->
 
+
     <target name="javadoc" depends="compile" description="Create Javadoc API documentation">
-        <javadoc sourcepath="${src.dir}"
-                 destdir="${docs.dir}"
-                 packagenames="*">			
-        </javadoc>	
+
+        <mkdir dir="${dist.home}/docs/api"/>
+		
+		
+        <javadoc sourcepath="${src.home}"
+                 destdir="${dist.home}/docs/api"
+                 packagenames="*">
+			
+            <!-- 
+            <classpath>
+                <fileset dir="${lib.home}">
+                    <include name="**/*.jar"/>
+                </fileset>
+            </classpath> 
+            -->
+        </javadoc>
+		
+
     </target>
 
+	
+	
     <!-- ==================== Run Target ================================== -->
 	
     <target name="run" depends="dist">
-        <java jar="${dist.dir}/${app.fullname}.jar" fork="true" />
+        <java jar="${dist.home}/${app.fullname}.jar" fork="true" />
     </target>
 	
     <!-- ==================== Run English ================================== -->
 	
     <target name="run-english" depends="dist">
-        <java jar="${dist.dir}/${app.fullname}.jar" fork="true" >
+        <java jar="${dist.home}/${app.fullname}.jar" fork="true" >
             <jvmarg value="-Duser.language=en"/>
         </java>
+    </target>
+	
+	
+	
+    <!-- ==================== Test Target ===================================== -->
+
+    <target name="test" depends="clean,compile,dist">
+
+        <junit fork="true"  printsummary="withOutAndErr" haltonfailure="false" showoutput="true" logfailedtests="true">
+
+            <classpath>
+                
+                <pathelement location="${build.home}"/>
+                <path refid="compile.classpath"/>
+                
+            </classpath>
+
+        <formatter type="xml"/>
+
+        </junit>
     </target>
 
 </project>

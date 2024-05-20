@@ -1,243 +1,435 @@
 package model;
 
-import java.util.ArrayList;
-import model.card.Card;
-import model.card.CardEnumColor;
-import model.player.HumanPlayer;
-import model.player.Player;
+import java.util.*;
 
 /**
- * Represents the game state and logic for a game of Hanabi.
- * Manages players, cards, and game progression.
+ * La classe Game représente une partie du jeu.
+ * Elle gère le deck, les joueurs, les cartes jouées, les cartes défaussées, les indices et les jetons.
  */
 public class Game {
-    /** Minimum number of players. */
-    public static final int MIN_PLAYER = 2;
-
-    /** Maximum number of players. */
-    public static final int MAX_PLAYER = 5;
-
-    /** Token tracker for available hint tokens. */
-    private Token blueToken;
-
-    /** Token tracker for penalty tokens. */
-    private Token redToken;
-
-    /** Number of players in the game. */
-    private int nbPlayers;
-
-    /** Deck of cards for the game. */
-    private Deck deck;
-
-    /** Container for played cards. */
-    private PlayedCards playedCards;
-
-    /** List of players in the game. */
-    private ArrayList<Player> players;
-
-    /** Currently active player. */
-    private Player currentPlayer;
-
-    /** Game board managing the card stack. */
-    private Board board;
+    /**
+     * Le paquet de cartes du jeu.
+     */
+    private final Deck deck;
 
     /**
-     * Initializes a new game with the specified number of players.
-     * @param nbPlayers the number of players in the game
+     * Les cartes défaussées du jeu.
      */
-    public Game(int nbPlayers) {
-        this.nbPlayers = nbPlayers;
-        prepareGame();
-        preparePlayers();
-        currentPlayer = players.get(0);
-    }
+    private DiscardedCards discard;
 
-    /** Prepares the game components needed to start the game. */
-    public void prepareGame() {
-        blueToken = new Token("Blue", 8);
-        redToken = new Token("Red", 3);
-        playedCards = new PlayedCards();
-        players = new ArrayList<>();
-        board = new Board(5);
-        deck = new Deck(50);
-    }
+    /**
+     * Le plateau de jeu.
+     */
+    private Bord bord;
 
-    /** Initializes players for the game based on the number of participants. */
-    public void preparePlayers() {
-        int handSize = nbPlayers > 3 ? 4 : 5;
-        for (int i = 0; i < nbPlayers; i++) {
-            players.add(new HumanPlayer(handSize, deck, i));
-        }
-    }
+    /**
+     * Les jetons bleus utilisés pour donner des indices.
+     */
+    private final Token blueTokens;
 
-    /** Cleans up game state components at the end of the game. */
-    public void endGame() {
-        board.cleanBoard();
-        playedCards.clean();
-        players.clear();
-        deck.cleanDeck();
+    /**
+     * Les jetons rouges utilisés pour indiquer les erreurs.
+     */
+    private final Token redTokens;
+
+    /**
+     * La liste des joueurs participant au jeu.
+     */
+    private final List<Player> players;
+
+    /**
+     * Les indices donnés aux joueurs.
+     */
+    private final PlayerHint hints;
+
+    /**
+     * Le nombre de joueurs participant au jeu.
+     */
+    private final int nbPlayers;
+
+    /**
+     * Le joueur actuellement en train de jouer.
+     */
+    private Player actualPlayer;
+
+    /**
+     * Les cartes qui ont été jouées sur le plateau.
+     */
+    private Set<Card> playedCards;
+
+    /**
+     * Les cartes qui ont été défaussées.
+     */
+    private Set<Card> discardedCards;
+
+    /**
+     * Les statistiques des cartes dans le jeu.
+     */
+    private Map<Card, Integer> cardStatistics;
+
+
+    /**
+     * Constructeur pour créer un jeu avec une liste de joueurs et un deck.
+     *
+     * @param players La liste des joueurs.
+     * @param deck Le deck de cartes.
+     */
+    public Game(List<Player> players, Deck deck) {
+        this.players = players;
+        this.nbPlayers = players.size();
+        this.deck = deck;
+        this.actualPlayer = players.get(0);
+        this.hints = new PlayerHint(this);
+        this.discard = new DiscardedCards();
+        this.bord = new Bord();
+        this.blueTokens = new Token("blue", 8);
+        this.redTokens = new Token("red", 3);
+        this.discardedCards = new HashSet<>();
+        this.playedCards = new HashSet<>();
+        this.cardStatistics = new HashMap<>();
+        initializeCardStatistics();
     }
 
     /**
-     * Gets the next player in the turn sequence.
-     * @return Player next in sequence
+     * Initialise les statistiques des cartes.
      */
-    public Player getNextPlayer() {
-        int index = players.indexOf(currentPlayer);
-        return players.get((index + 1) % nbPlayers);
-    }
-
-    /** Returns the currently active player. */
-    public Player getCurrentPlayer() {
-        return currentPlayer;
-    }
-
-    /** Sets the next player in the sequence as the current player. */
-    public void setCurrentPlayer() {
-        int index = players.indexOf(currentPlayer);
-        currentPlayer = players.get((index + 1) % nbPlayers);
-    }
-
-    /** Returns whether a player can legally play a card. */
-    public boolean canPlayCard() {
-        //todo
-        return true; // Placeholder for actual logic
-    }
-
-    /** Returns whether it is not possible to discard due to full blue tokens. */
-    public boolean canNotDiscard() {
-        return blueToken.isFullToken();
-    }
-
-    /** Returns whether it is not possible to give hints due to no blue tokens left. */
-    public boolean canNotGiveHint() {
-        return blueToken.isNoTokenLeft();
-    }
-
-    /** 
-     * Provides a hint based on the value of the cards.
-     * @param val The value to hint about.
-     * @param message Initial message to append hint information.
-     * @return Updated hint message.
-     */
-    public String giveHintByValue(int val, String message) throws Exception {
-        if (this.blueToken.isNoTokenLeft()) {
-            throw new Exception();
-        }
-        for (int i = 0; i < currentPlayer.getHand().getHandSize(); i++) {
-            if (getNextPlayer().getHand().getHandCards().get(i).getCardEnumValue().getValue() == val) {
-                message += (i + 1) + ", ";
+    private void initializeCardStatistics() {
+        for (CardColor color : CardColor.values()) {
+            for (int value = Card.getLowestValue(); value <= Card.getHighestValue(); value++) {
+                cardStatistics.put(new Card(value, color), Card.getTotalCount(value, color));
             }
         }
-        this.blueToken.removeToken();
-        return message;
     }
 
-    /** 
-     * Provides a hint based on the color of the cards.
-     * @param color The color to hint about.
-     * @param message Initial message to append hint information.
-     * @return Updated hint message.
-     * @throws Exception 
+    /**
+     * Met à jour les statistiques des cartes lorsque une carte est jouée ou défaussée.
+     *
+     * @param card La carte à mettre à jour.
      */
-    public String giveHintByColor(CardEnumColor color, String message) throws Exception {
-        if (this.blueToken.isNoTokenLeft()) {
-            throw new Exception();
-        }
-        for (int i = 0; i < currentPlayer.getHand().getHandSize(); i++) {
-            if (getNextPlayer().getHand().getHandCards().get(i).getColor() == color) {
-                message += (i + 1) + ", ";
-            }
-        }
-        this.blueToken.removeToken();
-        return message;
+    public void updateCardStatistics(Card card) {
+        cardStatistics.computeIfPresent(card, (k, v) -> v - 1);
     }
 
-    /** Executes the action of playing a card by index. */
-    public void playCardByIndex(int index) {
-        Card c = currentPlayer.playCardByIndex(index);
-        if (board.canAddCard(c)) {
-            if (board.addToTheBoard(c) && !redToken.isFullToken()) {
-                redToken.addToken();
-            }
+    /**
+     * Change le joueur actuel au joueur suivant.
+     */
+    public void changeActualPlayer() {
+        int index = players.indexOf(actualPlayer);
+        this.actualPlayer = players.get((index + 1) % nbPlayers);
+    }
+
+    /**
+     * Ajoute un indice pour un joueur.
+     *
+     * @param player Le joueur recevant l'indice.
+     * @param hint L'indice donné.
+     */
+    public void addHint(Player player, String hint) {
+        this.hints.addHint(player, hint);
+    }
+
+    /**
+     * Ajoute une carte au plateau.
+     *
+     * @param card La carte à ajouter.
+     * @return Vrai si la carte a été ajoutée, faux sinon.
+     */
+    public boolean addTobord(Card card) {
+        return bord.addToTheBord(card);
+    }
+
+    /**
+     * Défausse une carte et pioche une nouvelle carte du deck.
+     *
+     * @param card La carte à défausser.
+     */
+    public void discardCard(Card card) {
+        this.actualPlayer.discardCard(card);
+        this.actualPlayer.pickCardInDeck(deck);
+        this.discard.addCard(card);
+        if (!this.blueTokens.isFullToken()) {
+            this.blueTokens.addToken();
+        }
+    }
+
+    /**
+     * Défausse une carte par son index et pioche une nouvelle carte du deck.
+     *
+     * @param index L'index de la carte à défausser.
+     */
+    public void discardCard(int index) {
+        this.discardCard(this.actualPlayer.getCard(index));
+    }
+
+    /**
+     * Joue une carte et pioche une nouvelle carte du deck.
+     *
+     * @param card La carte à jouer.
+     */
+    public void playCard(Card card) {
+        this.actualPlayer.discardCard(card);
+        this.actualPlayer.pickCardInDeck(deck);
+        if (!addTobord(card)) {
+            this.discard.addCard(card);
+            this.redTokens.removeToken();
         } else {
-            playedCards.addCard(c);
-            redToken.removeToken();
+            this.playedCards.add(card);
         }
     }
 
-    /** Executes the action of discarding a card by index. */
-    public void discardByIndex(int index) {
-        if (blueToken.isFullToken()) {
-            throw new IllegalStateException("All INDICE tokens are on the bag, please perform another action.");
-        } else {
-            Card c = currentPlayer.discardByIndex(index);
-            playedCards.addCard(c);
-            blueToken.addToken();
-        }
+    /**
+     * Joue une carte par son index et pioche une nouvelle carte du deck.
+     *
+     * @param index L'index de la carte à jouer.
+     */
+    public void playCard(int index) {
+        this.playCard(this.actualPlayer.getCard(index));
     }
 
-    /** Calculates and returns the current game score. */
-    public int getScore() {
-        return board.countScore();
-    }
-
-    /** Determines if the game is over. */
+    /**
+     * Vérifie si le jeu est terminé.
+     *
+     * @return Vrai si le jeu est terminé, faux sinon.
+     */
     public boolean isGameOver() {
-        if (deck.getSize() == 0 || redToken.isNoTokenLeft() || board.isCompleteFireworks()) {
+        if (this.redTokens.noTokenAvailable()) {
+            return true;
+        }
+        if (bord.isCompleteFireworks()) {
+            return true;
+        }
+        return deck.isEmpty();
+    }
+
+    /**
+     * Vérifie si le jeu est gagné.
+     *
+     * @return Vrai si le jeu est gagné, faux sinon.
+     */
+    public boolean isGameWon() {
+        return bord.isCompleteFireworks();
+    }
+
+    /**
+     * Vérifie si des jetons bleus sont disponibles.
+     *
+     * @return Vrai si des jetons bleus sont disponibles, faux sinon.
+     */
+    public boolean haveBlueTokenAvailable() {
+        return !this.blueTokens.noTokenAvailable();
+    }
+
+    /**
+     * Utilise un jeton bleu.
+     */
+    public void useBlueToken() {
+        if (this.haveBlueTokenAvailable()) {
+            this.blueTokens.removeToken();
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("---------------------------------------------------------- Next round :--------------------------------------------------------------------- \n");
+        sb.append("Deck contains " + deck.getSize() + " cards\n");
+        sb.append("bord : " + bord.getFireworks().toString() + "\n");
+        sb.append("Discard : " + discard.getcardBag().toString() + "\n");
+        sb.append("Blue Tokens  : " + blueTokens.toString() + "\n");
+        sb.append("Red Tokens  : " + redTokens.toString() + "\n");
+        sb.append("List cards of other players : \n");
+        for (Player player : players) {
+            if (!player.equals(actualPlayer)) {
+                sb.append(player.getName() + " : " + player.getHand().toString() + "\n");
+            }
+        }
+        sb.append("List of hints by player : \n");
+        for (Player player : hints.getHints().keySet()) {
+            sb.append(player.getName() + " : " + hints.getHints().get(player).toString() + "\n");
+        }
+
+        sb.append("Actual player : " + actualPlayer.getName() + " has " + actualPlayer.getHand().getSize() + " cards in hand\n");
+        sb.append("Nb players : " + nbPlayers + "\n");
+        return sb.toString();
+    }
+
+    /**
+     * Vérifie si une carte est jouable.
+     *
+     * @param c La carte à vérifier.
+     * @return Vrai si la carte est jouable, faux sinon.
+     */
+    public boolean isPlayable(Card c) {
+        int index = c.getColor().ordinal();
+        // Vérifie si la pile est vide et si la carte a une valeur de 1.
+        if (bord.getFireworks().get(index).isEmpty() && c.getValue() == 1) {
+            return true;
+        } else if (!bord.getFireworks().get(index).isEmpty() &&
+                c.getValue() == bord.getFireworks().get(index).get(bord.getFireworks().get(index).size() - 1).getValue() + 1) {
+            // Vérifie si la valeur de la carte est exactement de 1 plus grande que la dernière carte de la pile.
+
             return true;
         }
         return false;
     }
 
-    /** Returns the number of blue tokens left. */
-    public Token getBlueToken() {
-        return blueToken;
+    /**
+     * Obtient l'ensemble des cartes connues (jouées ou défaussées).
+     *
+     * @return L'ensemble des cartes connues.
+     */
+    public Set<Card> getKnownCards() {
+        Set<Card> knownCards = new HashSet<>();
+        knownCards.addAll(this.playedCards);
+        knownCards.addAll(this.discardedCards);
+        return knownCards;
     }
 
-    /** Returns the number of red tokens left. */
-    public Token getRedToken() {
-        return redToken;
+    /**
+     * Obtient l'ensemble des cartes jouées.
+     *
+     * @return L'ensemble des cartes jouées.
+     */
+    public Set<Card> getPlayedCards() {
+        return this.playedCards;
     }
 
-    /** Returns the number of players in the game. */
-    public int getNbPlayers() {
-        return nbPlayers;
+    /**
+     * Obtient l'ensemble des cartes défaussées.
+     *
+     * @return L'ensemble des cartes défaussées.
+     */
+    public Set<Card> getDiscardedCards() {
+        return this.discardedCards;
     }
 
-    /** Returns the current deck of cards. */
+    /**
+     * Obtient le nombre de cartes restantes d'un type spécifique.
+     *
+     * @param card La carte à vérifier.
+     * @return Le nombre de cartes restantes.
+     */
+    public int getCardCount(Card card) {
+        return cardStatistics.getOrDefault(card, 0);
+    }
+
+    /**
+     * Obtient le deck de cartes.
+     *
+     * @return Le deck de cartes.
+     */
     public Deck getDeck() {
         return deck;
     }
 
-    /** Returns the container for played cards. */
-    public PlayedCards getPlayedCards() {
-        return playedCards;
-    }
-
-    /** Returns the game board. */
-    public Board getBoard() {
-        return board;
+    /**
+     * Obtient la liste des joueurs.
+     *
+     * @return La liste des joueurs.
+     */
+    public List<Player> getPlayers() {
+        return players;
     }
 
     /**
-     * Generates feedback based on the final game score.
-     * @return Score feedback string.
+     * Obtient les indices donnés par les joueurs.
+     *
+     * @return Une map des indices par joueur.
+     */
+    public Map<Player, List<String>> getHints() {
+        return hints.getHints();
+    }
+
+    /**
+     * Obtient les indices donnés aux joueurs.
+     *
+     * @return Les indices donnés aux joueurs.
+     */
+    public PlayerHint getPlayerHint() {
+        return hints;
+    }
+
+    /**
+     * Obtient le nombre de joueurs.
+     *
+     * @return Le nombre de joueurs.
+     */
+    public int getNbPlayers() {
+        return nbPlayers;
+    }
+
+    /**
+     * Obtient le joueur actuel.
+     *
+     * @return Le joueur actuel.
+     */
+    public Player getActualPlayer() {
+        return actualPlayer;
+    }
+
+    /**
+     * Obtient les cartes défaussées.
+     *
+     * @return Les cartes défaussées.
+     */
+    public DiscardedCards getDiscard() {
+        return discard;
+    }
+
+    /**
+     * Obtient le plateau de jeu.
+     *
+     * @return Le plateau de jeu.
+     */
+    public Bord getbord() {
+        return bord;
+    }
+
+    /**
+     * Obtient les jetons bleus.
+     *
+     * @return Les jetons bleus.
+     */
+    public Token getBlueTokens() {
+        return blueTokens;
+    }
+
+    /**
+     * Obtient les jetons rouges.
+     *
+     * @return Les jetons rouges.
+     */
+    public Token getRedTokens() {
+        return redTokens;
+    }
+
+    /**
+     * Obtient le score actuel du jeu.
+     *
+     * @return Le score actuel.
+     */
+    public int getScore() {
+        return bord.countScore();
+    }
+
+    /**
+     * Obtient un feedback basé sur le score actuel.
+     *
+     * @return Le feedback basé sur le score.
      */
     public String getScoreFeedback() {
-        int score = getScore();
-        String scoreMessage = "Your score is " + score + ".\n";
+        int score = this.getScore();
+
         if (score >= 25) {
-            scoreMessage += "Perfect! A perfect score, well played!";
+            return "Parfait ! Un score parfait, bien joué !";
         } else if (score >= 20) {
-            scoreMessage += "Impressive! You have excelled in this game.";
+            return "Impressionnant ! Vous avez excellé dans ce jeu.";
         } else if (score >= 15) {
-            scoreMessage += "Well done! This is a good result.";
+            return "Bien fait ! C'est un bon résultat.";
         } else if (score >= 10) {
-            scoreMessage += "Not bad, but you can do better.";
+            return "Pas mal, mais vous pouvez faire mieux.";
         } else {
-            scoreMessage += "Very very low";
+            return "Très très bas";
         }
-        return scoreMessage;
-    }    
+    }
 }
