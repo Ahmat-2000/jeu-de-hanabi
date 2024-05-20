@@ -74,7 +74,6 @@ Le projet est organisé comme suit :
 
    ```sh
    java -jar dist/Hanabi-0.1.jar
-
    ```
 
 ## Fonctionnalités
