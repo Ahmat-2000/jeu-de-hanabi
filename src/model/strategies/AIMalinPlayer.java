@@ -179,8 +179,7 @@ public class AIMalinPlayer extends AIPlayer {
      * @return Vrai si une carte doit être défaussée, faux sinon.
      */
     protected boolean shouldDiscardCard(Game game) {
-        return !cardsToDiscard.isEmpty() && game.haveBlueTokenAvailable() || 
-            (choosePlayerToGiveHint(game, false) == null && game.haveBlueTokenAvailable());
+        return !cardsToDiscard.isEmpty() && choosePlayerToGiveHint(game, false) == null;
     }
 
     /**
