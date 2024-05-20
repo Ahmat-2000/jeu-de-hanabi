@@ -42,7 +42,7 @@ public class CardView {
         this.pathname = "/content/images/back.png";
 
         if (this.card.isIsvisible()) {
-            this.pathname = "/content/images/" + this.card.getValue() + "-" + this.card.getColor() + ".png";
+            this.pathname = "/content/images/" + this.card.getColor() + "-" +this.card.getValue() + ".png";
         }
         try {
             ImageIcon Icon = new ImageIcon(getClass().getResource(this.pathname));
